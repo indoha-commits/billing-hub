@@ -152,14 +152,14 @@ export default function Payments() {
       key: "actions",
       header: "Actions",
       render: (payment: PaymentIntent) =>
-        payment.provider === "manual" && payment.status === "pending" ? (
+        payment.status === "pending" ? (
           <Button
             size="sm"
             variant="outline"
             disabled={approveManualPayment.isPending}
             onClick={() => approveManualPayment.mutate(payment.id)}
           >
-            Approve
+            Mark as Paid
           </Button>
         ) : (
           <span className="text-muted-foreground">—</span>
@@ -198,9 +198,6 @@ export default function Payments() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Providers</SelectItem>
-                <SelectItem value="momo">MoMo</SelectItem>
-                <SelectItem value="mpesa">M-Pesa</SelectItem>
-                <SelectItem value="stripe">Stripe</SelectItem>
                 <SelectItem value="manual">Manual</SelectItem>
               </SelectContent>
             </Select>

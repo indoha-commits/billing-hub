@@ -11,7 +11,10 @@ import {
   Settings,
   Bell,
   LogOut,
+  Sun,
+  Moon,
 } from "lucide-react";
+import { useTheme } from "next-themes";
 import {
   Sidebar,
   SidebarContent,
@@ -50,6 +53,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { state } = useSidebar();
+  const { theme, setTheme } = useTheme();
   const isCollapsed = state === "collapsed";
 
   const handleLogout = async () => {
@@ -57,19 +61,19 @@ export function AppSidebar() {
     navigate("/login");
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r-0">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm">
-            ID
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="font-semibold text-sidebar-foreground">InDataFlow</span>
-              <span className="text-xs text-sidebar-foreground/60">Operations Hub</span>
-            </div>
-          )}
+        <div className="flex items-center justify-center">
+          <img
+            src="/favicon.png"
+            alt="InDataFlow"
+            className="h-9 w-9 rounded-lg object-contain"
+          />
         </div>
       </SidebarHeader>
 
@@ -145,7 +149,15 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-4">
+      <SidebarFooter className="border-t border-sidebar-border p-4 space-y-2">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={toggleTheme}
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {!isCollapsed && <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>}
+        </Button>
         <Button
           variant="ghost"
           className="w-full justify-start gap-3 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
