@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -10,9 +11,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { workerPost } from "@/lib/workerClient";
+import { toast } from "sonner";
 
 type PaymentIntent = {
   id: string;
@@ -42,6 +45,20 @@ export default function Payments() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [providerFilter, setProviderFilter] = useState<string>("all");
+  const queryClient = useQueryClient();
+
+  const approveManualPayment = useMutation({
+    mutationFn: async (paymentIntentId: string) => {
+      return workerPost("/payments/manual/approve", { payment_intent_id: paymentIntentId });
+    },
+    onSuccess: () => {
+      toast.success("Manual payment approved");
+      queryClient.invalidateQueries({ queryKey: ["payment-intents"] });
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to approve: ${error?.message ?? error}`);
+    },
+  });
 
   const { data: payments, isLoading } = useQuery({
     queryKey: ["payment-intents"],
@@ -130,6 +147,23 @@ export default function Payments() {
       header: "Created",
       render: (payment: PaymentIntent) =>
         format(new Date(payment.created_at), "MMM d, yyyy h:mm a"),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      render: (payment: PaymentIntent) =>
+        payment.provider === "manual" && payment.status === "pending" ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={approveManualPayment.isPending}
+            onClick={() => approveManualPayment.mutate(payment.id)}
+          >
+            Approve
+          </Button>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
     },
   ];
 

@@ -12,6 +12,8 @@ import {
   Bell,
   Server,
   CreditCard,
+  Ship,
+  Container,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +21,19 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
 export default function Dashboard() {
+  // Fetch cargo statistics
+  const { data: cargoStats } = useQuery({
+    queryKey: ['cargo-stats'],
+    queryFn: async () => {
+      const response = await fetch('/ops/tenant/stats', {
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      if (!response.ok) throw new Error('Failed to fetch cargo stats');
+      return response.json();
+    },
+  });
   // Fetch KPIs
   const { data: tenants } = useQuery({
     queryKey: ["tenants-kpi"],
@@ -154,6 +169,26 @@ export default function Dashboard() {
           variant="primary"
         />
       </div>
+
+      {/* Cargo Statistics */}
+      {cargoStats && (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 mb-6">
+          <KPICard
+            title="Total Shipments"
+            value={cargoStats.total_cargo?.toString() || "0"}
+            subtitle="Across all clients"
+            icon={Ship}
+            variant="primary"
+          />
+          <KPICard
+            title="Total Containers"
+            value={cargoStats.total_containers?.toString() || "0"}
+            subtitle="Managed containers"
+            icon={Container}
+            variant="success"
+          />
+        </div>
+      )}
 
       {/* Quick Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
