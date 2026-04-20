@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,9 @@ import {
   RefreshCw,
   Ban,
   Power,
+  Calendar,
+  ExternalLink,
+  Users,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,6 +82,37 @@ export default function Notifications() {
       return data as Notification[];
     },
   });
+
+  const [leadSearch, setLeadSearch] = useState("");
+
+  const { data: leads, isLoading: leadsLoading } = useQuery({
+    queryKey: ["mt-leads"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mt_leads")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data as {
+        id: string;
+        name: string;
+        company: string;
+        country: string;
+        email: string;
+        monthly_volume: string | null;
+        source: string;
+        created_at: string;
+      }[];
+    },
+  });
+
+  const filteredLeads = leads?.filter(
+    (l) =>
+      l.name.toLowerCase().includes(leadSearch.toLowerCase()) ||
+      l.company.toLowerCase().includes(leadSearch.toLowerCase()) ||
+      l.email.toLowerCase().includes(leadSearch.toLowerCase()) ||
+      l.country.toLowerCase().includes(leadSearch.toLowerCase())
+  );
 
   const markResolved = useMutation({
     mutationFn: async (id: string) => {
@@ -317,6 +352,100 @@ export default function Notifications() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ── Walkthrough Requests / Leads ─────────────────────── */}
+      <div className="mt-10">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-blue-500/10">
+              <Users className="h-5 w-5 text-blue-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Walkthrough Requests</h2>
+              <p className="text-xs text-muted-foreground">
+                Leads submitted via indataflow.com contact form
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {leads?.length ?? 0} total
+            </span>
+          </div>
+        </div>
+
+        <Input
+          placeholder="Search by name, company, email, or country…"
+          value={leadSearch}
+          onChange={(e) => setLeadSearch(e.target.value)}
+          className="max-w-sm mb-4"
+        />
+
+        <div className="rounded-lg border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b bg-muted/40 text-left">
+                <th className="px-4 py-3 font-medium text-muted-foreground">Name</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Company</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Country</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Email</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Monthly Volume</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Received</th>
+                <th className="px-4 py-3 font-medium text-muted-foreground">Schedule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {leadsLoading ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                    Loading…
+                  </td>
+                </tr>
+              ) : filteredLeads?.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                    No walkthrough requests yet.
+                  </td>
+                </tr>
+              ) : (
+                filteredLeads?.map((lead) => (
+                  <tr key={lead.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3 font-medium">{lead.name}</td>
+                    <td className="px-4 py-3">{lead.company}</td>
+                    <td className="px-4 py-3">{lead.country}</td>
+                    <td className="px-4 py-3">
+                      <a
+                        href={`mailto:${lead.email}`}
+                        className="text-blue-500 hover:underline flex items-center gap-1"
+                      >
+                        {lead.email}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {lead.monthly_volume ?? "—"}
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {format(new Date(lead.created_at), "MMM d, yyyy")}
+                    </td>
+                    <td className="px-4 py-3">
+                      <a
+                        href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=InDataFlow+Walkthrough+-+${encodeURIComponent(lead.company)}&details=Walkthrough+request+from+${encodeURIComponent(lead.name)}+at+${encodeURIComponent(lead.company)}.+Email:+${encodeURIComponent(lead.email)}&duration=3000`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-border text-xs hover:bg-muted/60 transition-colors"
+                      >
+                        <Calendar className="h-3.5 w-3.5" />
+                        Schedule Meet
+                      </a>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </DashboardLayout>
   );
 }

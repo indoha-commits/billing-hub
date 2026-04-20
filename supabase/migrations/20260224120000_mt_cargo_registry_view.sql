@@ -6,6 +6,7 @@ select
   cl.name as client_name,
   c.container_id as cargo_id,
   c.id as cargo_uuid,
+  c.bill_of_lading,
   c.created_at
 from public.mt_cargo c
 join public.mt_clients cl on cl.id = c.client_id;

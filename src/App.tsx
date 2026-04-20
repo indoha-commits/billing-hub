@@ -20,6 +20,7 @@ import Calendar from "./pages/Calendar";
 import Notifications from "./pages/Notifications";
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
+import ManagerUsers from "./pages/ManagerUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,14 @@ const App = () => (
             element={
               <RequireAuth>
                 <Clients />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/manager-users"
+            element={
+              <RequireAuth>
+                <ManagerUsers />
               </RequireAuth>
             }
           />

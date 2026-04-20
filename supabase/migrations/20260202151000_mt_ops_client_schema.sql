@@ -34,6 +34,8 @@ create table if not exists public.mt_cargo (
   expected_arrival_date date,
   eta timestamptz,
 
+  bill_of_lading text,
+
   status text not null default 'open' check (status in ('open','closed','cancelled')),
 
   created_at timestamptz not null default now(),

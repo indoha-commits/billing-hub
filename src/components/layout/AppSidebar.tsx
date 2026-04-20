@@ -36,6 +36,7 @@ import { Button } from "@/components/ui/button";
 const mainNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Clients", url: "/clients", icon: Users },
+  { title: "Manager Users", url: "/manager-users", icon: Users },
   { title: "Payments", url: "/payments", icon: CreditCard },
   { title: "Invoices", url: "/invoices", icon: FileText },
   { title: "Subscriptions", url: "/subscriptions", icon: RefreshCw },

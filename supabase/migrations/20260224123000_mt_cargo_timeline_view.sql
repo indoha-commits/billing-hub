@@ -4,6 +4,7 @@ select
   e.tenant_id,
   c.container_id as cargo_id,
   e.cargo_id as cargo_uuid,
+  c.bill_of_lading,
   e.event_type,
   e.event_time,
   e.actor_type,
